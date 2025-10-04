@@ -5,6 +5,55 @@ const rateLimit = require("express-rate-limit");
 const OpenAI = require("openai");
 require("dotenv").config();
 
+// Validate required environment variables
+function validateEnvironment() {
+  const required = {
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  };
+
+  const missing = [];
+  for (const [key, value] of Object.entries(required)) {
+    if (!value || value.trim() === "") {
+      missing.push(key);
+    }
+  }
+
+  if (missing.length > 0) {
+    console.error("❌ Missing required environment variables:");
+    missing.forEach((key) => {
+      console.error(`   - ${key}`);
+    });
+    console.error("\n💡 Fix this by:");
+    console.error(
+      "   1. Setting environment variables in your deployment platform"
+    );
+    console.error(
+      "   2. For Railway: Go to Dashboard → Variables → Add Variable"
+    );
+    console.error(
+      "   3. For local development: Create a .env file (see .env.example)"
+    );
+    console.error(
+      "\n🔑 Your OpenAI API key should start with 'sk-' and be from https://platform.openai.com/api-keys"
+    );
+
+    process.exit(1);
+  }
+
+  // Validate OpenAI API key format
+  if (!process.env.OPENAI_API_KEY.startsWith("sk-")) {
+    console.error(
+      "❌ Invalid OpenAI API key format. It should start with 'sk-'"
+    );
+    process.exit(1);
+  }
+
+  console.log("✅ Environment variables validated successfully");
+}
+
+// Run validation before initializing the app
+validateEnvironment();
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -82,7 +131,7 @@ app.post("/api/generate-logo", async (req, res) => {
     // Generate 4 logo variations with different styles
     const styles = ["vivid", "natural"];
     const promises = Array.from({ length: 4 }, (_, index) =>
-      generateSingleLogo(enhancedPrompt, styles[index % 2]),
+      generateSingleLogo(enhancedPrompt, styles[index % 2])
     );
 
     const results = await Promise.allSettled(promises);
@@ -92,12 +141,12 @@ app.post("/api/generate-logo", async (req, res) => {
       .map((result) => result.value);
 
     const failedCount = results.filter(
-      (result) => result.status === "rejected",
+      (result) => result.status === "rejected"
     ).length;
 
     if (failedCount > 0) {
       console.warn(
-        `⚠️ ${failedCount} logo generations failed, got ${successfulResults.length} successful results`,
+        `⚠️ ${failedCount} logo generations failed, got ${successfulResults.length} successful results`
       );
     }
 

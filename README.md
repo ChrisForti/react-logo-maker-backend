@@ -50,19 +50,63 @@ This backend provides secure API endpoints for generating AI logos using OpenAI'
    - Connect your GitHub repository
    - Select the backend directory
 
-2. **Set Environment Variables:**
+2. **Set Environment Variables in Railway:**
 
-   - `OPENAI_API_KEY`: Your actual OpenAI API key
-   - `NODE_ENV`: production
+   **CRITICAL:** Environment variables must be set in Railway dashboard BEFORE deployment.
+
+   - Go to your Railway project dashboard
+   - Click on "Variables" tab
+   - Add these required variables:
+     - `OPENAI_API_KEY`: Your actual OpenAI API key (starts with sk-)
+     - `NODE_ENV`: production
+     - `PORT`: 3001 (Railway will override this automatically)
 
 3. **Deploy:**
 
    - Railway automatically detects Express apps
    - Deployment starts immediately after environment variables are set
+   - Check deployment logs for any errors
 
 4. **Update Frontend:**
-   - Copy your Railway deployment URL
+   - Copy your Railway deployment URL (usually ends with .railway.app)
    - Update the frontend to use your secure backend
+
+### 🚨 Troubleshooting Deployment Issues
+
+#### Error: "failed to stat /tmp/railpack-build-\*/secrets/OPENAI_API_KEY"
+
+**Cause:** The `OPENAI_API_KEY` environment variable is not set in Railway.
+
+**Solution:**
+
+1. Go to Railway dashboard → Your Project → Variables tab
+2. Click "Add Variable"
+3. Set `OPENAI_API_KEY` = `sk-your-actual-openai-key-here`
+4. Redeploy the service
+
+#### Error: "Authentication failed with OpenAI service"
+
+**Causes & Solutions:**
+
+- **Invalid API Key:** Verify your OpenAI API key is correct and active
+- **Billing Issue:** Check your OpenAI account has available credits
+- **Key Format:** Ensure the key starts with `sk-` and has no extra spaces
+
+#### Error: "OpenAI rate limit exceeded"
+
+**Solutions:**
+
+- Wait a few minutes and try again
+- Check your OpenAI usage dashboard
+- Consider upgrading your OpenAI plan for higher limits
+
+#### Error: "Module not found" or build failures
+
+**Solutions:**
+
+- Ensure `package.json` is in the root directory
+- Check that all dependencies are listed in `dependencies` (not `devDependencies`)
+- Verify Node.js version compatibility (requires Node.js ≥18.0.0)
 
 ### 📋 API Endpoints
 
