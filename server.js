@@ -65,18 +65,44 @@ const openai = new OpenAI({
 // Security middleware
 app.use(helmet());
 
-// CORS configuration - update with your frontend domain
+// CORS configuration - supports both production and development
 const corsOptions = {
-  origin:
-    process.env.NODE_ENV === "production"
-      ? ["https://chrisforti.github.io", "https://your-custom-domain.com"] // Add your actual domains
-      : [
-          "http://localhost:5173",
-          "http://localhost:5174",
-          "http://127.0.0.1:5173",
-        ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, postman, etc.)
+    if (!origin) return callback(null, true);
+
+    const allowedOrigins =
+      process.env.NODE_ENV === "production"
+        ? [
+            "https://chrisforti.github.io",
+            "https://your-custom-domain.com", // Add your actual production domains
+          ]
+        : [
+            // Common development ports for Vite, React, Next.js, etc.
+            "http://localhost:3000", // React default
+            "http://localhost:3001", // Alternative React port
+            "http://localhost:5173", // Vite default
+            "http://localhost:5174", // Alternative Vite port
+            "http://localhost:8080", // Webpack dev server
+            "http://localhost:8000", // Alternative dev port
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5173",
+            "http://127.0.0.1:5174",
+            // Add any custom development URLs
+            ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+          ];
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`🚫 CORS blocked request from origin: ${origin}`);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 };
 
 app.use(cors(corsOptions));
@@ -264,6 +290,19 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Logo API server running on port ${PORT}`);
   console.log(`🔑 OpenAI API configured: ${!!process.env.OPENAI_API_KEY}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+
+  // Log allowed CORS origins for debugging
+  const isDev = process.env.NODE_ENV !== "production";
+  if (isDev) {
+    console.log(`🔗 CORS enabled for development origins:`);
+    console.log(`   - http://localhost:3000 (React default)`);
+    console.log(`   - http://localhost:5173 (Vite default)`);
+    console.log(`   - http://localhost:5174 (Alt Vite port)`);
+    console.log(`   - And more development ports...`);
+  } else {
+    console.log(`🔗 CORS enabled for production origins:`);
+    console.log(`   - https://chrisforti.github.io`);
+  }
 });
 
 module.exports = app;
