@@ -75,6 +75,7 @@ const corsOptions = {
       process.env.NODE_ENV === "production"
         ? [
             "https://chrisforti.github.io",
+            "http://localhost:5173",
             "https://your-custom-domain.com", // Add your actual production domains
           ]
         : [
